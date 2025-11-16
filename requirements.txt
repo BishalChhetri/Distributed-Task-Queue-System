@@ -1,0 +1,6 @@
+flask
+requests
+httpx
+sqlalchemy
+python-dotenv
+rich
