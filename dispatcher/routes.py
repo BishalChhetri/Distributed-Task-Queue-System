@@ -123,6 +123,9 @@ def register_routes(app):
             computation_time = data.get('computation_time')
             method = data.get('method')
             status = data.get('status', 'completed')
+            was_resumed = data.get('was_resumed', False)
+            checkpoint_time = data.get('checkpoint_time')
+            resume_time = data.get('resume_time')
             
             print(f"\n{'='*60}")
             print(f" RESULT RECEIVED - Task ID: {task_id}")
@@ -130,13 +133,16 @@ def register_routes(app):
             print(f"   Status: {status}")
             print(f"   Primes count: {len(primes) if primes else 0}")
             print(f"   Computation time: {computation_time}s")
+            if was_resumed:
+                print(f"   Resumed from checkpoint (checkpoint: {checkpoint_time}s, resume: {resume_time}s)")
             print(f"   Method: {method}")
             print(f"{'='*60}\n")
     
             if status not in ['completed', 'failed']:
                 return jsonify({"error": "status must be 'completed' or 'failed'"}), 400
             
-            result = save_result(task_id, primes, computation_time, method, status, worker_id)
+            result = save_result(task_id, primes, computation_time, method, status, worker_id,
+                               was_resumed, checkpoint_time, resume_time)
             
             print(f" DATABASE UPDATED - Task {task_id} marked as {status}")
             print(f"   Full result: {result}\n")

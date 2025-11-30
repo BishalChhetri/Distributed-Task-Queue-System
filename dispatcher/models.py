@@ -33,6 +33,9 @@ CREATE TABLE IF NOT EXISTS task_results (
     primes TEXT,
     status TEXT NOT NULL,
     computation_time REAL,
+    was_resumed INTEGER DEFAULT 0,
+    checkpoint_time REAL,
+    resume_time REAL,
     method TEXT,
     created_at TIMESTAMP DEFAULT (datetime('now')),
     FOREIGN KEY (task_id) REFERENCES tasks(id)
@@ -43,6 +46,18 @@ TASK_RESULTS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_task_results_task_id ON task_results(task_id);",
     "CREATE INDEX IF NOT EXISTS idx_task_results_worker_id ON task_results(worker_id);"
 ]
+
+CHECKPOINTS_TABLE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS checkpoints (
+    task_id INTEGER PRIMARY KEY,
+    last_checked INTEGER NOT NULL,
+    primes TEXT NOT NULL,
+    elapsed_time REAL NOT NULL,
+    method TEXT,
+    updated_at TIMESTAMP DEFAULT (datetime('now')),
+    FOREIGN KEY (task_id) REFERENCES tasks(id)
+);
+"""
 
 WORKERS_TABLE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workers (

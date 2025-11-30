@@ -45,7 +45,7 @@ def execute_task(task):
         task_module = importlib.import_module(f'tasks.{task_type}_task')
         
         if hasattr(task_module, 'execute'):
-            result = task_module.execute(task_id, payload, result_file_path=None)
+            result = task_module.execute(task_id, payload)
             return result
         else:
             return {
@@ -427,7 +427,10 @@ class Worker:
                 "status": status,
                 "primes": result.get('primes', []),
                 "computation_time": result.get('computation_time'),
-                "method": result.get('method')
+                "method": result.get('method'),
+                "was_resumed": result.get('was_resumed', False),
+                "checkpoint_time": result.get('checkpoint_time'),
+                "resume_time": result.get('resume_time')
             }
             
             response = requests.post(

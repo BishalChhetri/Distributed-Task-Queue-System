@@ -10,11 +10,12 @@ load_dotenv()
 
 DISPATCHER_URL = "http://localhost:5000"
 PRIMES_MAX_LIMIT = int(os.getenv('PRIMES_MAX_LIMIT', '1000000'))
+PRIMES_DEFAULT_METHOD = os.getenv('PRIMES_DEFAULT_METHOD', 'trial_division')
 
-USAGE = """ To use this script: you need to use the following commands: (sieve is the default one)
+USAGE = """ To use this script: you need to use the following commands: (trial_division is the default one)
   add_task.py 5
   add_task.py 3 200000
-  add_task.py 2 100000 trial_division
+  add_task.py 2 100000 sieve
 """
 def main():
     if len(sys.argv) < 2:
@@ -34,12 +35,12 @@ def main():
         except ValueError:
             print("limit must be an integer, using default 100000")
 
-    method = 'sieve'
+    method = PRIMES_DEFAULT_METHOD
     if len(sys.argv) >= 4:
         method = sys.argv[3]
         if method not in ['sieve', 'trial_division']:
-            print(f"Unknown method '{method}', using 'sieve'")
-            method = 'sieve'
+            print(f"Unknown method '{method}', using 'trial_division'")
+            method = 'trial_division'
 
     if limit > PRIMES_MAX_LIMIT:
         print(f"\n⚠️  WARNING: Requested limit {limit} exceeds PRIMES_MAX_LIMIT ({PRIMES_MAX_LIMIT})")

@@ -11,6 +11,7 @@ from models import (
     TASKS_TABLE_SCHEMA, 
     TASK_RESULTS_TABLE_SCHEMA,
     TASK_RESULTS_INDEXES,
+    CHECKPOINTS_TABLE_SCHEMA,
     WORKERS_TABLE_SCHEMA,
     DEFAULT_MAX_ATTEMPTS,
     DEFAULT_LEASE_DURATION,
@@ -40,6 +41,7 @@ def init_db():
     cursor.execute(TASK_RESULTS_TABLE_SCHEMA)
     for index_sql in TASK_RESULTS_INDEXES:
         cursor.execute(index_sql)
+    cursor.execute(CHECKPOINTS_TABLE_SCHEMA)
     cursor.execute(WORKERS_TABLE_SCHEMA)
 
     conn.commit()
@@ -189,7 +191,8 @@ def update_heartbeat(worker_id, status='alive', metadata=None):
             conn.close()
 
 
-def save_result(task_id, primes, computation_time, method, status='completed', worker_id=None):
+def save_result(task_id, primes, computation_time, method, status='completed', worker_id=None, 
+                was_resumed=False, checkpoint_time=None, resume_time=None):
     conn = None
     try:
         conn = get_conn()
@@ -216,9 +219,11 @@ def save_result(task_id, primes, computation_time, method, status='completed', w
         primes_json = json.dumps(primes) if primes else None
         
         cursor.execute("""
-            INSERT INTO task_results (task_id, worker_id, primes, status, computation_time, method)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (task_id, worker_id, primes_json, status, computation_time, method))
+            INSERT INTO task_results 
+            (task_id, worker_id, primes, status, computation_time, was_resumed, checkpoint_time, resume_time, method)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (task_id, worker_id, primes_json, status, computation_time, 
+              1 if was_resumed else 0, checkpoint_time, resume_time, method))
         
         cursor.execute("""
             UPDATE tasks
@@ -394,4 +399,76 @@ def mark_dead_workers():
         if conn:
             conn.rollback()
         return 0
+
+def save_checkpoint(task_id, last_checked, primes, elapsed_time, method):
+    conn = None
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
         
+        primes_json = json.dumps(primes)
+        
+        cursor.execute("""
+            INSERT OR REPLACE INTO checkpoints 
+            (task_id, last_checked, primes, elapsed_time, method, updated_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now'))
+        """, (task_id, last_checked, primes_json, elapsed_time, method))
+        
+        conn.commit()
+        
+    except sqlite3.Error as e:
+        print(f"[DB ERROR] Failed to save checkpoint: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            conn.close()
+
+def load_checkpoint(task_id):
+    conn = None
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT last_checked, primes, elapsed_time, method
+            FROM checkpoints
+            WHERE task_id = ?
+        """, (task_id,))
+        
+        row = cursor.fetchone()
+        
+        if row:
+            return {
+                'last_checked': row['last_checked'],
+                'primes': json.loads(row['primes']),
+                'elapsed_time': row['elapsed_time'],
+                'method': row['method']
+            }
+        
+        return None
+        
+    except sqlite3.Error as e:
+        print(f"[DB ERROR] Failed to load checkpoint: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+
+def delete_checkpoint(task_id):
+    conn = None
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM checkpoints WHERE task_id = ?", (task_id,))
+        conn.commit()
+        
+    except sqlite3.Error as e:
+        print(f"[DB ERROR] Failed to delete checkpoint: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            conn.close()
+
