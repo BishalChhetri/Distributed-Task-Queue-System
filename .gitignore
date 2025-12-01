@@ -59,3 +59,6 @@ tasks/READEME.md
 dispatcher/task_distribution.py
 README.md.backup
 REASSIGNMENT_TEST.md
+analysis/
+run_analysis.sh
+run_recovery_tests.sh

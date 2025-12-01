@@ -111,6 +111,8 @@ class CheckpointManager:
                 '--images-dir', images_dir,
                 '--shell-job',
                 '-d',
+                '--inherit-fd', 'fd[1]:/tmp/restore_stdout.log', # Redirect stdout
+                '--inherit-fd', 'fd[2]:/tmp/restore_stderr.log', # Redirect stderr
                 '-v4'
             ]
             
