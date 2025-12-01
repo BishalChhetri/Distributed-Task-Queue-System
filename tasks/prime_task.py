@@ -68,12 +68,12 @@ def execute(task_id, payload):
         elapsed = time.time() - start_time
         
         print(f"   Found {len(primes)} prime numbers")
-        print(f"   Computation time: {elapsed:.2f}s")
+        print(f"   Computation time: {elapsed:.4f}s")
         
         result = {
             "status": "completed",
             "primes": primes,
-            "computation_time": round(elapsed, 2),
+            "computation_time": round(elapsed, 4),
             "method": method
         }
         

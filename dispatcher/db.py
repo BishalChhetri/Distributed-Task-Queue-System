@@ -1,4 +1,3 @@
-# dispatcher/db.py
 import sqlite3
 import os
 import sys
@@ -396,6 +395,3 @@ def mark_dead_workers():
             conn.rollback()
         return 0
         
-    finally:
-        if conn:
-            conn.close()
