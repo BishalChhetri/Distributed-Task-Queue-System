@@ -85,10 +85,10 @@ DB_TIMEOUT = config.get_int('DB_TIMEOUT', 5)
 # for task settings
 DEFAULT_MAX_ATTEMPTS = config.get_int('DEFAULT_MAX_ATTEMPTS', 5)
 DEFAULT_LEASE_DURATION = config.get_int('DEFAULT_LEASE_DURATION', 120)
-DEFAULT_HEARTBEAT_TIMEOUT = config.get_int('DEFAULT_HEARTBEAT_TIMEOUT', 60)
 
 # for heartbeat monitor settings
 HEARTBEAT_MONITOR_INTERVAL = config.get_int('HEARTBEAT_MONITOR_INTERVAL', 15)
+WORKER_DEATH_TIMEOUT = config.get_int('WORKER_DEATH_TIMEOUT', 60)
 
 # for connection settings
 WORKER_DISPATCHER_URL = config.get_str('WORKER_DISPATCHER_URL', 'http://localhost:5000')

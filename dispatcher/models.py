@@ -6,7 +6,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared.config import (
     DEFAULT_MAX_ATTEMPTS,
     DEFAULT_LEASE_DURATION,
-    DEFAULT_HEARTBEAT_TIMEOUT
 )
 
 TASKS_TABLE_SCHEMA = """

@@ -6,7 +6,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from shared.config import DB_TIMEOUT
+from shared.config import DB_TIMEOUT, WORKER_DEATH_TIMEOUT
 from models import (
     TASKS_TABLE_SCHEMA, 
     TASK_RESULTS_TABLE_SCHEMA,
@@ -324,10 +324,10 @@ def get_active_workers():
         conn = get_conn()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT worker_id, last_heartbeat, status, metadata
             FROM workers
-            WHERE last_heartbeat > datetime('now', '-60 seconds')
+            WHERE last_heartbeat > datetime('now', '-{WORKER_DEATH_TIMEOUT} seconds')
               AND status = 'alive'
         """)
         
@@ -379,10 +379,10 @@ def mark_dead_workers():
         conn = get_conn()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(f"""
             UPDATE workers
             SET status = 'dead'
-            WHERE last_heartbeat < datetime('now', '-60 seconds')
+            WHERE last_heartbeat < datetime('now', '-{WORKER_DEATH_TIMEOUT} seconds')
               AND status != 'dead'
         """)
         
