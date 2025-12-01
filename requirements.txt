@@ -2,6 +2,7 @@ flask
 requests
 python-dotenv
 httpx
-sqlalchemy
-python-dotenv
 rich
+
+# CRIU (Checkpoint/Restore In Userspace) - Please install via system package manager:
+# Ubuntu/Debian: sudo apt-get install criu
