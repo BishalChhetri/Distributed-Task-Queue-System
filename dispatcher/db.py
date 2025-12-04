@@ -399,6 +399,51 @@ def mark_dead_workers():
         if conn:
             conn.rollback()
         return 0
+        
+    finally:
+        if conn:
+            conn.close()
+
+
+def reclaim_tasks_from_dead_workers():
+    conn = None
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        cursor.execute(f"""
+            UPDATE tasks
+            SET status = 'pending',
+                assigned_to = NULL,
+                updated_at = datetime('now')
+            WHERE status = 'in-progress'
+              AND assigned_to IN (
+                  SELECT worker_id 
+                  FROM workers 
+                  WHERE last_heartbeat < datetime('now', '-{WORKER_DEATH_TIMEOUT} seconds')
+                     OR status = 'dead'
+              )
+              AND attempts < max_attempts
+        """)
+        
+        reclaimed = cursor.rowcount
+        conn.commit()
+        
+        if reclaimed > 0:
+            print(f"[DB] Reclaimed {reclaimed} task(s) from dead workers")
+        
+        return reclaimed
+        
+    except sqlite3.Error as e:
+        print(f"[DB ERROR] Failed to reclaim tasks from dead workers: {e}")
+        if conn:
+            conn.rollback()
+        return 0
+        
+    finally:
+        if conn:
+            conn.close()
+
 
 def save_checkpoint(task_id, last_checked, primes, elapsed_time, method):
     conn = None

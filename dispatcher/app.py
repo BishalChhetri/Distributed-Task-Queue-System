@@ -10,7 +10,7 @@ load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared.config import DISPATCHER_HOST, DISPATCHER_PORT, HEARTBEAT_MONITOR_INTERVAL
-from db import init_db, mark_dead_workers, reclaim_expired_tasks
+from db import init_db, mark_dead_workers, reclaim_expired_tasks, reclaim_tasks_from_dead_workers
 from routes import register_routes
 
 app = Flask(__name__)
@@ -33,6 +33,9 @@ def background_monitor():
             
             # Mark workers as dead if they haven't sent heartbeat
             mark_dead_workers()
+            
+            # Reclaim tasks from dead workers
+            reclaim_tasks_from_dead_workers()
             
             # Reclaim tasks from expired leases
             reclaim_expired_tasks()

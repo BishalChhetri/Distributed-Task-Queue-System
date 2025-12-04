@@ -1,0 +1,18 @@
+{
+  "num_workers": 16,
+  "num_tasks": 16,
+  "task_size": 1000000,
+  "num_dead_workers": 4,
+  "killed_workers": [
+    "recovery_worker_5",
+    "recovery_worker_4",
+    "recovery_worker_12",
+    "recovery_worker_10"
+  ],
+  "baseline_time": 12.6,
+  "total_time": 15.0,
+  "recovery_overhead": 2.4,
+  "overhead_percentage": 19.03,
+  "reassigned_tasks": 4,
+  "timestamp": "2025-12-02T17:31:50.793183"
+}
