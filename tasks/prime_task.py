@@ -1,6 +1,7 @@
 import time
 import os
 import sys
+import threading
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,8 +12,22 @@ sys.path.insert(0, dispatcher_path)
 
 from dispatcher.db import save_checkpoint, load_checkpoint, delete_checkpoint
 
+# Thread-safe checkpoint saving
+def save_checkpoint_async(task_id, last_checked, primes, elapsed_time, method):
+    """
+    We just save checkpoint in background thread to avoid blocking computation and creates a copy of the primes list to prevent race conditions.
+    """
+    primes_copy = primes.copy()
+    thread = threading.Thread(
+        target=save_checkpoint,
+        args=(task_id, last_checked, primes_copy, elapsed_time, method),
+        daemon=True
+    )
+    thread.start()
+    return thread
+
 MAX_LIMIT = int(os.getenv('PRIMES_MAX_LIMIT', '1000000'))
-CHECKPOINT_INTERVAL = 100000
+CHECKPOINT_INTERVAL = int(os.getenv('CHECKPOINT_INTERVAL', '100000'))
 
 # I use two methods to find the prime the first one is sieve and second is trail division
 
@@ -88,6 +103,9 @@ def execute(task_id, payload):
     
     try:
         if method == 'trial_division':
+            # Track checkpoint threads to ensure final checkpoint completes
+            checkpoint_threads = []
+            
             for num in range(start_num, limit + 1):
                 is_prime = True
                 for i in range(2, int(num ** 0.5) + 1):
@@ -101,9 +119,15 @@ def execute(task_id, payload):
                     elapsed = time.time() - start_time
                     if was_resumed:
                         elapsed += checkpoint_time
-                    save_checkpoint(task_id, num, primes, elapsed, method)
+                    # Save checkpoint asynchronously (non-blocking)
+                    thread = save_checkpoint_async(task_id, num, primes, elapsed, method)
+                    checkpoint_threads.append(thread)
                     progress_pct = (num / limit) * 100
-                    print(f"  Checkpoint saved: {num:,}/{limit:,} ({progress_pct:.1f}%) - {len(primes):,} primes - {elapsed:.2f}s")
+                    print(f"  Checkpoint saved (async): {num:,}/{limit:,} ({progress_pct:.1f}%) - {len(primes):,} primes - {elapsed:.2f}s")
+            
+            # Wait for any pending checkpoint saves before finishing
+            for thread in checkpoint_threads:
+                thread.join(timeout=2.0)
         else:
             if not was_resumed:
                 primes = find_primes_sieve(limit)

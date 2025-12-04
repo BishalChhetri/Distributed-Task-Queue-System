@@ -39,7 +39,7 @@ wheels/
 *.log
 
 # Environment
-.env
+# .env
 .env.local
 
 # OS
@@ -61,7 +61,10 @@ README.md.backup
 REASSIGNMENT_TEST.md
 
 
-analysis/recovery_plots/
-analysis/results/throughput_plots/
+analysis/recovery_plots/recovery_report.txt
+analysis/throughput_plots/report_1000.txt
+analysis/throughput_plots/report_1000000.txt
 run_analysis.sh
 run_recovery_tests.sh
+
+README_OLD.md

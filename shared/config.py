@@ -113,6 +113,8 @@ ENABLE_DEBUG_LOGGING = config.get_bool('ENABLE_DEBUG_LOGGING', False)
 PRIMES_DEFAULT_METHOD = config.get_str('PRIMES_DEFAULT_METHOD', 'sieve')
 PRIMES_MAX_LIMIT = config.get_int('PRIMES_MAX_LIMIT', 1000000)
 
+CHECKPOINT_INTERVAL = config.get_int('CHECKPOINT_INTERVAL', 100000)
+
 # Print loaded configuration (for debugging)
 if ENABLE_DEBUG_LOGGING:
     print("Loaded configuration:")
